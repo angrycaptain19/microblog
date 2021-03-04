@@ -20,9 +20,7 @@ class SearchableMixin(object):
         ids, total = query_index(cls.__tablename__, expression, page, per_page)
         if total == 0:
             return cls.query.filter_by(id=0), 0
-        when = []
-        for i in range(len(ids)):
-            when.append((ids[i], i))
+        when = [(ids[i], i) for i in range(len(ids))]
         return cls.query.filter(cls.id.in_(ids)).order_by(
             db.case(when, value=cls.id)), total
 
@@ -61,7 +59,7 @@ class PaginatedAPIMixin(object):
     @staticmethod
     def to_collection_dict(query, page, per_page, endpoint, **kwargs):
         resources = query.paginate(page, per_page, False)
-        data = {
+        return {
             'items': [item.to_dict() for item in resources.items],
             '_meta': {
                 'page': page,
@@ -78,7 +76,6 @@ class PaginatedAPIMixin(object):
                                 **kwargs) if resources.has_prev else None
             }
         }
-        return data
 
 
 followers = db.Table(
